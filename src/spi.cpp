@@ -8,10 +8,10 @@
 //  angle_register  - (optional) angle read register - default 0x3FFF
 MagneticSensorSPI sensor = MagneticSensorSPI(10, 14, 0x3FFF);
 
-// TODO: calibrar motor
+// TODO: calibrar motor -> https://docs.simplefoc.com/bldcmotor
 BLDCMotor motor = BLDCMotor(7);
+// TODO: verificar como usar o driver -> https://docs.simplefoc.com/drivers_config
 BLDCDriver3PWM driver = BLDCDriver3PWM(9,5,6,8);
-
 
 //Target variable
 float target_velocity = 0;
