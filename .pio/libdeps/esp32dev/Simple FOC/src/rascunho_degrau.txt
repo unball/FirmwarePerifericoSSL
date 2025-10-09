@@ -1,0 +1,21 @@
+const int ledPin = 9;
+unsigned long tempoDegrau = 5000; // tempo em milissegundos (5 segundos)
+unsigned long tempoInicial;
+bool degrauAplicado = false;
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  tempoInicial = millis(); // guarda o momento inicial
+}
+
+void loop() {
+  unsigned long tempoAtual = millis();
+
+  // Verifica se o tempo passou e se o degrau ainda não foi aplicado
+  if (!degrauAplicado && (tempoAtual - tempoInicial >= tempoDegrau)) {
+    digitalWrite(ledPin, HIGH); // aplica o sinal degrau (liga o LED)
+    degrauAplicado = true; // marca que o degrau foi aplicado
+  }
+
+  // Aqui você pode colocar outras tarefas que devem rodar continuamente
+}
