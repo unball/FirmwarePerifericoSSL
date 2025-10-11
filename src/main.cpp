@@ -5,7 +5,7 @@
 MagneticSensorI2C encoder = MagneticSensorI2C(AS5600_I2C);
 TwoWire I2Cone = TwoWire(0);
 
-BLDCMotor motor = BLDCMotor(11,11.1);
+BLDCMotor motor = BLDCMotor(11);
 BLDCDriver3PWM driver = BLDCDriver3PWM(32, 33, 25, 22);
 
 InlineCurrentSense current_sense = InlineCurrentSense(0.01f, 50.0f, 39, 36);
@@ -37,6 +37,8 @@ void setup() {
     current_sense.gain_b *= -1;
     current_sense.init();
 
+    motor.LPF_velocity.Tf = 0.01; 
+
     motor.linkCurrentSense(&current_sense);
 
     motor.initFOC();   
@@ -45,7 +47,7 @@ void setup() {
 unsigned long t0_current = 0;
 unsigned long inter_current = 10; //us
 
-float target = 0;
+float target = 1;
 unsigned long tempoInicio = 0;
 bool degrau = false;
 
@@ -72,17 +74,6 @@ void loop() {
     //         motor.move(target);
     //     }
     // }
-
-
-    if (tempoAtual - tempoInicio >= 50) {
-        if(target >= 1){
-            target = 1;
-        }
-
-        target += incremento;
-        
-        tempoInicio = tempoAtual;
-    }
 
     motor.loopFOC();
     motor.move(target);

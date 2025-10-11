@@ -12,11 +12,9 @@ def filtrar_tensao_amostra(arquivo_entrada):
     ibeta = []
     iq = []
     id = []
-    # iq_f = []
-    # id_f = []
     mag = []
     encoder = []
-    # vel = []
+    vel = []
 
     for i in range(0, len(linhas)-1):
         partes = linhas[i].strip().split()
@@ -30,32 +28,44 @@ def filtrar_tensao_amostra(arquivo_entrada):
         ibeta.append(float(partes[7]))
         mag.append(float(partes[8]))
         encoder.append(float(partes[9]))
-        # vel.append(float(partes[8]))
+        if(abs(float(partes[10]))<= 60):
+            vel.append(float(partes[10]))
         # entrada.append(0.1)
 
     plt.figure()
-    plt.plot(ia, color='red')
-    plt.plot(ib, color='green')
+    plt.plot(vel)
+    # plt.plot(ib, color='green')
     # plt.plot(mag, color='cyan')
     # plt.xlim([600,800])
-    plt.title("ia ib")
+    # plt.title("ia ib")
 
-    plt.figure()
-    plt.plot(iq, color='red')
-    plt.plot(id, color='green')
-    plt.title("iq id")
+    # plt.figure()
+    # plt.plot(iq, color='red')
+    # plt.plot(id, color='green')
+    # plt.title("iq id")
     # plt.xlim([600,800])
 
-    plt.figure()
+    # plt.figure()
     # plt.plot(entrada, color='red')
     # plt.plot(ialpha)
     # plt.plot(ibeta)
-    plt.plot(mag, color='green')
-    plt.title("entrada mag")
+    # plt.plot(mag, color='green')
+    # plt.title("entrada mag")
     # plt.xlim([600,800])
 
     plt.show()
 
-entrada = '7-10-degrau-5.txt'
+    sum = 0
+    for i in range(0,len(vel)):
+        vel[i] = (30/3.1415)*vel[i]
+        sum += vel[i]
+    
+    kv_media = sum/len(vel)
+    print(f'KV experimental: {kv_media}')
+    print(f'+70% KV: {kv_media+(kv_media*0.7)}')
+
+    
+
+entrada = 'find_kv.txt'
 
 filtrar_tensao_amostra(entrada)
