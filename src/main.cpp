@@ -6,9 +6,12 @@ MagneticSensorI2C encoder = MagneticSensorI2C(AS5600_I2C);
 TwoWire I2Cone = TwoWire(0);
 
 BLDCMotor motor = BLDCMotor(11,6.75);
-BLDCDriver3PWM driver = BLDCDriver3PWM(32, 33, 25, 22);
+// BLDCDriver3PWM driver = BLDCDriver3PWM(32, 33, 25, 22);
+BLDCDriver3PWM driver = BLDCDriver3PWM(26, 27, 14, 12);
+// 26, 27, 14, 12
 
-InlineCurrentSense current_sense = InlineCurrentSense(0.01f, 50.0f, 39, 36);
+// InlineCurrentSense current_sense = InlineCurrentSense(0.01f, 50.0f, 39, 36);
+InlineCurrentSense current_sense = InlineCurrentSense(0.01f, 50.0f,  35, 34);
 
 //Command Settings
 // float target = 0;                                //Enter "T+speed" in the serial monitor to make the two motors rotate in closed loop
@@ -20,7 +23,8 @@ void setup() {
     SimpleFOCDebug::enable(&Serial);
     motor.useMonitoring(Serial);    
     
-    I2Cone.begin(19,18, 400000UL);
+    // I2Cone.begin(19,18, 400000UL);
+    I2Cone.begin(23, 5, 400000UL);
     encoder.init(&I2Cone);
     motor.linkSensor(&encoder);
 
@@ -32,36 +36,34 @@ void setup() {
 
     motor.foc_modulation = FOCModulationType::SpaceVectorPWM;
     motor.torque_controller = TorqueControlType::foc_current;
-    motor.controller = MotionControlType::velocity;
+    motor.controller = MotionControlType::torque;
     motor.current_limit = 1;
     motor.voltage_limit = 12;
     motor.velocity_limit = 50;
     
-    // current_sense1.gain_a *= -1;
     motor.linkCurrentSense(&current_sense);
+    current_sense.gain_a *= -1;
     current_sense.gain_b *= -1;
     current_sense.init();
 
     motor.PID_current_q.P = 10;
     motor.PID_current_q.I = 2000; 
     motor.PID_current_q.D = -0.00001;
-    motor.LPF_current_q.Tf = 0.01;
+    motor.LPF_current_q.Tf = 0.00663;
     
     motor.PID_current_d.P = 10;
     motor.PID_current_d.I = 2000;
     motor.PID_current_d.D = -0.00001;
-    motor.LPF_current_d.Tf = 0.01;
+    motor.LPF_current_d.Tf = 0.0106;
 
-    motor.LPF_velocity.Tf = 0.005;
-
-    motor.PID_velocity.P = 0.02;
-    motor.PID_velocity.I = 1;
-    motor.PID_velocity.D = 0.000001;
-
+    // motor.PID_velocity.P = 10;
+    // motor.PID_velocity.I = 1;
+    // motor.PID_velocity.D = 1;
+    // motor.LPF_velocity.Tf = 0.01;
+    // motor.PID_velocity.output_ramp = 50;
 
     motor.init();
-    motor.initFOC();   
-
+    motor.initFOC();    
 
     // command.add('T', doTarget, "target velocity");
 
@@ -94,36 +96,36 @@ void loop() {
 
     // }
 
-    if(tempoAtual - tempoInicio >= 50){
-        target += incremento;
-        if(target >= 50){
-            target = 50;
-        }
+    // if(tempoAtual - tempoInicio >= 50){
+    //     target += incremento;
+    //     if(target >= 50){
+    //         target = 50;
+    //     }
 
-        tempoInicio = tempoAtual;
-    }
+    //     tempoInicio = tempoAtual;
+    // }
 
     // motor.move(target);
 
 
-    // if (!degrau) {
-    //     degrau = true;
-    //     tempoInicio = millis();
-    // }
+    if (!degrau) {
+        degrau = true;
+        tempoInicio = millis();
+    }
 
 
-    // if (degrau) {
-    //     if (millis() - tempoInicio >= 8000) {
-    //         target = 50;
-    //     }         
-    //     else { 
-    //         target = 0;
-    //     }
-    // }
+    if (degrau) {
+        if (millis() - tempoInicio >= 3000) {
+            target = 0.1;
+        }         
+        else { 
+            target = 0;
+        }
+    }
 
     motor.move(target);
     // command.run();
-    
+
     if(tf_current - t0_current >= inter_current){
 
         PhaseCurrent_s phase_currents = current_sense.getPhaseCurrents();
