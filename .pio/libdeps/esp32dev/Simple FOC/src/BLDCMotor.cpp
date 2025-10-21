@@ -385,7 +385,7 @@ void BLDCMotor::loopFOC() {
       break;
   }
 
-  // set the phase voltage - FOC heart function :)
+  // set the phase voltage - FOC heart function :)  
   setPhaseVoltage(voltage.q, voltage.d, electrical_angle);
 }
 
