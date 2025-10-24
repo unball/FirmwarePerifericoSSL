@@ -35,36 +35,53 @@ void setup() {
     current_sense.linkDriver(&driver);
 
     motor.foc_modulation = FOCModulationType::SpaceVectorPWM;
-    motor.torque_controller = TorqueControlType::foc_current;
+    motor.torque_controller = TorqueControlType::dc_current;
     motor.controller = MotionControlType::torque;
     motor.current_limit = 1;
     motor.voltage_limit = 12;
     motor.velocity_limit = 50;
+
+    // motor.zero_electric_angle  = 1.70; // rad
+    // motor.sensor_direction = Direction::CCW; // CW or CCW
     
     motor.linkCurrentSense(&current_sense);
     current_sense.gain_b *= -1;
     current_sense.init();
 
-    motor.PID_current_q.P = 5;
-    motor.PID_current_q.I = 1000; 
-    motor.PID_current_q.D = 0.0001;
-    motor.LPF_current_q.Tf = 0.00663;
+    // motor.PID_current_q.P = 15;
+    // motor.PID_current_q.I = 40000; 
+    // motor.PID_current_q.D = 0.000102;
+    // motor.LPF_current_q.Tf = 0.01;
     
-    motor.PID_current_d.P = 10;
-    motor.PID_current_d.I = 1000;
-    motor.PID_current_d.D = 0.0001;
-    motor.LPF_current_d.Tf = 0.00106;
+    // motor.PID_current_d.P = 5;
+    // motor.PID_current_d.I = 5000;
+    // motor.PID_current_d.D = 0.0001;
+    // motor.LPF_current_d.Tf = 0.005;
 
-    // motor.PID_velocity.P = -1;
-    // motor.PID_velocity.I = 0;
-    // motor.PID_velocity.D = 0;
+
+    motor.PID_current_q.P = 20;
+    motor.PID_current_q.I = 100; 
+    motor.PID_current_q.D = 0.01;
+    motor.LPF_current_q.Tf = 0.01;
+    motor.PID_current_q.limit = motor.voltage_limit;
+
+    // motor.PID_current_d.P = 1;
+    // motor.PID_current_d.I = 500;
+    // motor.PID_current_d.D = 0.01;
+    // motor.LPF_current_d.Tf = 0.01;
+
+    // motor.PID_velocity.P = -0.0001;
+    // motor.PID_velocity.I = -0.001;
+    // motor.PID_velocity.D = -0.00001;
     // motor.LPF_velocity.Tf = 0.001;
-    // motor.PID_velocity.output_ramp = 1000;
+    // motor.PID_velocity.output_ramp = 0;
 
     motor.init();
     motor.initFOC();    
 
     // command.add('T', doTarget, "target velocity");
+
+    // motor.motion_downsample = 100;
 
     _delay(1000);
 
@@ -75,36 +92,16 @@ unsigned long inter_current = 20;
 float target = 0;
 unsigned long tempoInicio = 0;
 bool degrau = false;
-float incremento = 0.0001;
+float incremento = 0.001;
+
+unsigned long t0_move = 0;
+
+unsigned long t0_foc = 0;
 
 void loop() {
     unsigned long tf_current = millis();
-    unsigned long tempoAtual = millis();
-
-    motor.loopFOC();
-
-    // if(tempoAtual - tempoInicio >= 1000){
-    //     tempoInicio = tempoAtual;
-        
-    //     if(target != 0){
-    //         target = 0;
-    //     }else{
-    //         target = 1;
-    //     }
-
-    // }
-
-    // if(tempoAtual - tempoInicio >= 50){
-    //     target += incremento;
-    //     if(target >= 1){
-    //         target = 1;
-    //     }
-
-    //     tempoInicio = tempoAtual;
-    // }
-
-    // motor.move(target);
-
+    unsigned long tf_move = millis();
+    unsigned long tf_foc = _micros();
 
     if (!degrau) {
         degrau = true;
@@ -114,14 +111,29 @@ void loop() {
 
     if (degrau) {
         if (millis() - tempoInicio >= 3000) {
-            target = -1;
+            target = 1;
         }         
         else { 
             target = 0;
         }
     }
 
+    // if(millis() - tempoInicio >= 50){
+    //     target += incremento;
+    //     if(target >= 1){
+    //         target = 1;
+    //     }
+    // }
+
+    motor.loopFOC();
+
     motor.move(target);
+    // controle velocidade a cada 10ms 
+    // if(tf_move - t0_move >= 3){
+
+    //     t0_move = tf_move;
+    // }
+
     // command.run();
 
     if(tf_current - t0_current >= inter_current){
@@ -135,19 +147,19 @@ void loop() {
         Serial.print("\t");
         Serial.print(target, 5);
         Serial.print("\t");
-        Serial.print(phase_currents.a,5);
-        Serial.print("\t");
-        Serial.print(phase_currents.b,5);
+        // Serial.print(phase_currents.a,5);
+        // Serial.print("\t");
+        // Serial.print(phase_currents.b,5);
         Serial.print("\t");
         Serial.print(dq_currents.q,5);
         Serial.print("\t");
         Serial.print(dq_currents.d,5);
-        Serial.print("\t");
-        Serial.print(ab_currents.alpha,5);
-        Serial.print("\t");
-        Serial.print(ab_currents.beta,5);
-        Serial.print("\t");
-        Serial.print(current_magnitude, 5);
+        // Serial.print("\t");
+        // Serial.print(ab_currents.alpha,5);
+        // Serial.print("\t");
+        // Serial.print(ab_currents.beta,5);
+        // Serial.print("\t");
+        // Serial.print(current_magnitude, 5);
         Serial.print("\t");
         Serial.print(encoder.getSensorAngle(),5);
         Serial.print("\t");
