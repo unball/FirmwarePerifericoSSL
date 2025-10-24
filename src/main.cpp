@@ -3,15 +3,18 @@
 #include <Arduino.h>
 
 MagneticSensorI2C encoder = MagneticSensorI2C(AS5600_I2C);
+MagneticSensorI2C encoder1 = MagneticSensorI2C(AS5600_I2C);
 TwoWire I2Cone = TwoWire(0);
+TwoWire I2CTwo = TwoWire(1);
 
 BLDCMotor motor = BLDCMotor(11,6.75);
-// BLDCDriver3PWM driver = BLDCDriver3PWM(32, 33, 25, 22);
-BLDCDriver3PWM driver = BLDCDriver3PWM(26, 27, 14, 12);
+BLDCMotor motor1 = BLDCMotor(11,6.75);
+BLDCDriver3PWM driver = BLDCDriver3PWM(32, 33, 25, 22);
+BLDCDriver3PWM driver1 = BLDCDriver3PWM(26, 27, 14, 12);
 // 26, 27, 14, 12
 
-// InlineCurrentSense current_sense = InlineCurrentSense(0.01f, 50.0f, 39, 36);
-InlineCurrentSense current_sense = InlineCurrentSense(0.01f, 50.0f,  35, 34);
+InlineCurrentSense current_sense = InlineCurrentSense(0.01f, 50.0f, 39, 36);
+InlineCurrentSense current_sense1 = InlineCurrentSense(0.01f, 50.0f,  35, 34);
 
 //Command Settings
 // float target = 0;                                //Enter "T+speed" in the serial monitor to make the two motors rotate in closed loop
@@ -22,9 +25,9 @@ void setup() {
     Serial.begin(115200);
     SimpleFOCDebug::enable(&Serial);
     motor.useMonitoring(Serial);    
+    motor1.useMonitoring(Serial);    
     
-    // I2Cone.begin(19,18, 400000UL);
-    I2Cone.begin(23, 5, 400000UL);
+    I2Cone.begin(19,18, 400000UL);
     encoder.init(&I2Cone);
     motor.linkSensor(&encoder);
 
@@ -40,24 +43,10 @@ void setup() {
     motor.current_limit = 1;
     motor.voltage_limit = 12;
     motor.velocity_limit = 50;
-
-    // motor.zero_electric_angle  = 1.70; // rad
-    // motor.sensor_direction = Direction::CCW; // CW or CCW
     
     motor.linkCurrentSense(&current_sense);
     current_sense.gain_b *= -1;
     current_sense.init();
-
-    // motor.PID_current_q.P = 15;
-    // motor.PID_current_q.I = 40000; 
-    // motor.PID_current_q.D = 0.000102;
-    // motor.LPF_current_q.Tf = 0.01;
-    
-    // motor.PID_current_d.P = 5;
-    // motor.PID_current_d.I = 5000;
-    // motor.PID_current_d.D = 0.0001;
-    // motor.LPF_current_d.Tf = 0.005;
-
 
     motor.PID_current_q.P = 20;
     motor.PID_current_q.I = 100; 
@@ -65,23 +54,53 @@ void setup() {
     motor.LPF_current_q.Tf = 0.01;
     motor.PID_current_q.limit = motor.voltage_limit;
 
-    // motor.PID_current_d.P = 1;
-    // motor.PID_current_d.I = 500;
-    // motor.PID_current_d.D = 0.01;
-    // motor.LPF_current_d.Tf = 0.01;
-
     motor.PID_velocity.P = 0.001;
     motor.PID_velocity.I = 0.1;
     motor.PID_velocity.D = 0.00001;
     motor.LPF_velocity.Tf = 0.0001;
     motor.PID_velocity.output_ramp = 1000;
 
+
+    // motor 1
+    I2CTwo.begin(23, 5, 400000UL);
+    encoder1.init(&I2CTwo);
+    motor1.linkSensor(&encoder1);
+
+    driver1.voltage_power_supply = 12;
+    driver1.voltage_limit = 12;
+    driver1.init();
+    motor1.linkDriver(&driver1);
+    current_sense1.linkDriver(&driver1);
+
+    motor1.foc_modulation = FOCModulationType::SpaceVectorPWM;
+    motor1.torque_controller = TorqueControlType::dc_current;
+    motor1.controller = MotionControlType::velocity;
+    motor1.current_limit = 1;
+    motor1.voltage_limit = 12;
+    motor1.velocity_limit = 50;
+    
+    motor1.linkCurrentSense(&current_sense1);
+    current_sense1.gain_b *= -1;
+    current_sense1.init();
+
+    motor1.PID_current_q.P = 20;
+    motor1.PID_current_q.I = 100; 
+    motor1.PID_current_q.D = 0.01;
+    motor1.LPF_current_q.Tf = 0.01;
+    motor1.PID_current_q.limit = motor1.voltage_limit;
+
+    motor1.PID_velocity.P = 0.001;
+    motor1.PID_velocity.I = 0.1;
+    motor1.PID_velocity.D = 0.00001;
+    motor1.LPF_velocity.Tf = 0.0001;
+    motor1.PID_velocity.output_ramp = 1000;
+
+
     motor.init();
+    motor1.init();
+    
     motor.initFOC();    
-
-    // command.add('T', doTarget, "target velocity");
-
-    // motor.motion_downsample = 100;
+    motor1.initFOC(); 
 
     _delay(1000);
 
@@ -111,7 +130,7 @@ void loop() {
 
     if (degrau) {
         if (millis() - tempoInicio >= 3000) {
-            target = 50;
+            target = -10;
         }         
         else { 
             target = 0;
@@ -126,10 +145,12 @@ void loop() {
     // }
 
     motor.loopFOC();
+    motor1.loopFOC();
 
     // controle velocidade a cada 10ms 
     if(tf_move - t0_move >= 5){
         motor.move(target);
+        motor1.move(target);
 
         t0_move = tf_move;
     }
@@ -158,10 +179,10 @@ void loop() {
         // Serial.print(ab_currents.alpha,5);
         // Serial.print("\t");
         // Serial.print(ab_currents.beta,5);
-        // Serial.print("\t");
-        // Serial.print(current_magnitude, 5);
         Serial.print("\t");
-        Serial.print(encoder.getSensorAngle(),5);
+        Serial.print(current_magnitude, 5);
+        // Serial.print("\t");
+        // Serial.print(encoder.getSensorAngle(),5);
         Serial.print("\t");
         Serial.println(encoder.getVelocity(),5);
         
