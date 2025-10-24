@@ -6,12 +6,12 @@ MagneticSensorI2C encoder = MagneticSensorI2C(AS5600_I2C);
 TwoWire I2Cone = TwoWire(0);
 
 BLDCMotor motor = BLDCMotor(11,6.75);
-BLDCDriver3PWM driver = BLDCDriver3PWM(32, 33, 25, 22);
-// BLDCDriver3PWM driver = BLDCDriver3PWM(26, 27, 14, 12);
+// BLDCDriver3PWM driver = BLDCDriver3PWM(32, 33, 25, 22);
+BLDCDriver3PWM driver = BLDCDriver3PWM(26, 27, 14, 12);
 // 26, 27, 14, 12
 
-InlineCurrentSense current_sense = InlineCurrentSense(0.01f, 50.0f, 39, 36);
-// InlineCurrentSense current_sense = InlineCurrentSense(0.01f, 50.0f,  35, 34);
+// InlineCurrentSense current_sense = InlineCurrentSense(0.01f, 50.0f, 39, 36);
+InlineCurrentSense current_sense = InlineCurrentSense(0.01f, 50.0f,  35, 34);
 
 //Command Settings
 // float target = 0;                                //Enter "T+speed" in the serial monitor to make the two motors rotate in closed loop
@@ -23,8 +23,8 @@ void setup() {
     SimpleFOCDebug::enable(&Serial);
     motor.useMonitoring(Serial);    
     
-    I2Cone.begin(19,18, 400000UL);
-    // I2Cone.begin(23, 5, 400000UL);
+    // I2Cone.begin(19,18, 400000UL);
+    I2Cone.begin(23, 5, 400000UL);
     encoder.init(&I2Cone);
     motor.linkSensor(&encoder);
 
@@ -36,7 +36,7 @@ void setup() {
 
     motor.foc_modulation = FOCModulationType::SpaceVectorPWM;
     motor.torque_controller = TorqueControlType::dc_current;
-    motor.controller = MotionControlType::torque;
+    motor.controller = MotionControlType::velocity;
     motor.current_limit = 1;
     motor.voltage_limit = 12;
     motor.velocity_limit = 50;
@@ -70,11 +70,11 @@ void setup() {
     // motor.PID_current_d.D = 0.01;
     // motor.LPF_current_d.Tf = 0.01;
 
-    // motor.PID_velocity.P = -0.0001;
-    // motor.PID_velocity.I = -0.001;
-    // motor.PID_velocity.D = -0.00001;
-    // motor.LPF_velocity.Tf = 0.001;
-    // motor.PID_velocity.output_ramp = 0;
+    motor.PID_velocity.P = 0.001;
+    motor.PID_velocity.I = 0.1;
+    motor.PID_velocity.D = 0.00001;
+    motor.LPF_velocity.Tf = 0.0001;
+    motor.PID_velocity.output_ramp = 1000;
 
     motor.init();
     motor.initFOC();    
@@ -111,7 +111,7 @@ void loop() {
 
     if (degrau) {
         if (millis() - tempoInicio >= 3000) {
-            target = 1;
+            target = 50;
         }         
         else { 
             target = 0;
@@ -127,12 +127,12 @@ void loop() {
 
     motor.loopFOC();
 
-    motor.move(target);
     // controle velocidade a cada 10ms 
-    // if(tf_move - t0_move >= 3){
+    if(tf_move - t0_move >= 5){
+        motor.move(target);
 
-    //     t0_move = tf_move;
-    // }
+        t0_move = tf_move;
+    }
 
     // command.run();
 
