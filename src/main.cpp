@@ -24,8 +24,10 @@ void setup() {
 
     Serial.begin(115200);
     SimpleFOCDebug::enable(&Serial);
+
+
+    Serial.println("Motor 0");
     motor.useMonitoring(Serial);    
-    motor1.useMonitoring(Serial);    
     
     I2Cone.begin(19,18, 400000UL);
     encoder.init(&I2Cone);
@@ -55,13 +57,17 @@ void setup() {
     motor.PID_current_q.limit = motor.voltage_limit;
 
     motor.PID_velocity.P = 0.001;
-    motor.PID_velocity.I = 0.1;
+    motor.PID_velocity.I = 1;
     motor.PID_velocity.D = 0.00001;
-    motor.LPF_velocity.Tf = 0.0001;
+    motor.LPF_velocity.Tf = 0.001;
     motor.PID_velocity.output_ramp = 1000;
 
+    motor.init();
+    motor.initFOC();    
 
-    // motor 1
+    Serial.println("Motor 1");
+    motor1.useMonitoring(Serial);    
+    
     I2CTwo.begin(23, 5, 400000UL);
     encoder1.init(&I2CTwo);
     motor1.linkSensor(&encoder1);
@@ -90,16 +96,12 @@ void setup() {
     motor1.PID_current_q.limit = motor1.voltage_limit;
 
     motor1.PID_velocity.P = 0.001;
-    motor1.PID_velocity.I = 0.1;
+    motor1.PID_velocity.I = 1;
     motor1.PID_velocity.D = 0.00001;
-    motor1.LPF_velocity.Tf = 0.0001;
+    motor1.LPF_velocity.Tf = 0.001;
     motor1.PID_velocity.output_ramp = 1000;
-
-
-    motor.init();
-    motor1.init();
     
-    motor.initFOC();    
+    motor1.init();
     motor1.initFOC(); 
 
     _delay(1000);
@@ -111,51 +113,64 @@ unsigned long inter_current = 20;
 float target = 0;
 unsigned long tempoInicio = 0;
 bool degrau = false;
-float incremento = 0.001;
+float incremento = 0.01;
 
 unsigned long t0_move = 0;
 
 unsigned long t0_foc = 0;
 
+unsigned long liga = 0;
+
 void loop() {
     unsigned long tf_current = millis();
     unsigned long tf_move = millis();
     unsigned long tf_foc = _micros();
+    unsigned long tempoAtual = millis();
 
-    if (!degrau) {
-        degrau = true;
-        tempoInicio = millis();
-    }
+    // if (!degrau) {
+    //     degrau = true;
+    //     tempoInicio = millis();
+    // }
 
 
-    if (degrau) {
-        if (millis() - tempoInicio >= 3000) {
-            target = -10;
-        }         
-        else { 
-            target = 0;
-        }
-    }
-
-    // if(millis() - tempoInicio >= 50){
-    //     target += incremento;
-    //     if(target >= 1){
-    //         target = 1;
+    // if (degrau) {
+    //     if (millis() - tempoInicio >= 3000) {
+    //         target = -50;
+    //     }         
+    //     else { 
+    //         target = 0;
     //     }
     // }
+
+    // if(tempoAtual - tempoInicio >= 1000){
+    //     tempoInicio = tempoAtual;
+        
+    //     if(target != 0){
+    //         target = 0;
+    //     }else{
+    //         target = -50;
+    //     }
+
+    // }
+
+    if(millis() - tempoInicio >= 100){
+        target -= incremento;
+        if(target <= -50){
+            target = -50;
+        }
+    }
 
     motor.loopFOC();
     motor1.loopFOC();
 
     // controle velocidade a cada 10ms 
     if(tf_move - t0_move >= 5){
+        target *= -1;
         motor.move(target);
         motor1.move(target);
-
+        target *= -1;
         t0_move = tf_move;
     }
-
-    // command.run();
 
     if(tf_current - t0_current >= inter_current){
 
@@ -184,7 +199,28 @@ void loop() {
         // Serial.print("\t");
         // Serial.print(encoder.getSensorAngle(),5);
         Serial.print("\t");
-        Serial.println(encoder.getVelocity(),5);
+        Serial.print(encoder.getVelocity(),5);
+        Serial.print("\t");
+
+
+        phase_currents = current_sense1.getPhaseCurrents();
+        ab_currents = current_sense1.getABCurrents(phase_currents);
+        dq_currents = current_sense1.getDQCurrents(ab_currents, motor.electrical_angle);
+        current_magnitude = current_sense1.getDCCurrent();
+
+        Serial.print(dq_currents.q,5);
+        Serial.print("\t");
+        Serial.print(dq_currents.d,5);
+        // Serial.print("\t");
+        // Serial.print(ab_currents.alpha,5);
+        // Serial.print("\t");
+        // Serial.print(ab_currents.beta,5);
+        Serial.print("\t");
+        Serial.print(current_magnitude, 5);
+        // Serial.print("\t");
+        // Serial.print(encoder.getSensorAngle(),5);
+        Serial.print("\t");
+        Serial.println(encoder1.getVelocity(),5);
         
         
         t0_current = tf_current;
