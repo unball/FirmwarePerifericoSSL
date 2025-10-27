@@ -2,169 +2,110 @@
 #include <Wire.h>
 #include <Arduino.h>
 
-MagneticSensorI2C encoder = MagneticSensorI2C(AS5600_I2C);
-// MagneticSensorI2C encoder1 = MagneticSensorI2C(AS5600_I2C);
-TwoWire I2Cone = TwoWire(0);
-// TwoWire I2CTwo = TwoWire(1);
-
-BLDCMotor motor = BLDCMotor(11,6.75);
-// BLDCMotor motor1 = BLDCMotor(11,6.75);
-BLDCDriver3PWM driver = BLDCDriver3PWM(32, 33, 25, 22);
-// BLDCDriver3PWM driver1 = BLDCDriver3PWM(26, 27, 14, 12);
-
-InlineCurrentSense current_sense = InlineCurrentSense(0.01f, 50.0f, 39, 36);
-// InlineCurrentSense current_sense1 = InlineCurrentSense(0.01f, 50.0f,  35, 34);
+MagneticSensorI2C encoder0 = MagneticSensorI2C(AS5600_I2C);
+TwoWire I2CEncoder0 = TwoWire(0);
+BLDCMotor motor0 = BLDCMotor(11);
+BLDCDriver3PWM driver0 = BLDCDriver3PWM(32, 33, 25, 22);
+InlineCurrentSense currentSense0 = InlineCurrentSense(0.01f, 50.0f, 39, 36);
 
 void setup() {
 
     Serial.begin(115200);
     SimpleFOCDebug::enable(&Serial);
 
-    motor.useMonitoring(Serial);    
+    motor0.useMonitoring(Serial);    
     
-    I2Cone.begin(19,18, 400000UL);
-    encoder.init(&I2Cone);
-    motor.linkSensor(&encoder);
+    I2CEncoder0.begin(19,18, 400000UL);
+    encoder0.init(&I2CEncoder0);
+    motor0.linkSensor(&encoder0);
 
-    driver.voltage_power_supply = 12;
-    driver.voltage_limit = 12;
-    driver.init();
-    motor.linkDriver(&driver);
-    current_sense.linkDriver(&driver);
+    driver0.voltage_power_supply = 12;
+    driver0.voltage_limit = 12;
+    driver0.init();
+    motor0.linkDriver(&driver0);
+    currentSense0.linkDriver(&driver0);
 
-    motor.foc_modulation = FOCModulationType::SpaceVectorPWM;
-    motor.torque_controller = TorqueControlType::dc_current;
-    motor.controller = MotionControlType::torque;
-    motor.current_limit = 1;
-    motor.voltage_limit = 12;
-    motor.velocity_limit = 50;
+    motor0.foc_modulation = FOCModulationType::SpaceVectorPWM;
+    motor0.torque_controller = TorqueControlType::dc_current;
+    motor0.controller = MotionControlType::torque;
+    motor0.current_limit = 1.1;
+    motor0.voltage_limit = 12;
+    motor0.velocity_limit = 55;
     
-    motor.linkCurrentSense(&current_sense);
-    current_sense.gain_b *= -1;
-    current_sense.init();
+    motor0.linkCurrentSense(&currentSense0);
+    currentSense0.gain_b *= -1;
+    currentSense0.init();
 
-    motor.PID_current_q.P = 25;
-    motor.PID_current_q.I = 10000; 
-    motor.PID_current_q.D = -0.001;
-    motor.LPF_current_q.Tf = 0.01;
-    motor.PID_current_q.limit = motor.voltage_limit;
+    motor0.PID_current_q.P = 25;
+    motor0.PID_current_q.I = 10000; 
+    motor0.PID_current_q.D = -0.001;
+    motor0.LPF_current_q.Tf = 0.01;
+    motor0.PID_current_q.limit = motor0.voltage_limit;
 
-    // motor.PID_velocity.P = 0.001;
-    // motor.PID_velocity.I = 1;
-    // motor.PID_velocity.D = 0.00001;
-    // motor.LPF_velocity.Tf = 0.001;
-    // motor.PID_velocity.output_ramp = 1000;
-
-    motor.init();
-    motor.initFOC();    
-
-    // motor1.useMonitoring(Serial);    
-    
-    // I2CTwo.begin(23, 5, 400000UL);
-    // encoder1.init(&I2CTwo);
-    // motor1.linkSensor(&encoder1);
-
-    // driver1.voltage_power_supply = 12;
-    // driver1.voltage_limit = 12;
-    // driver1.init();
-    // motor1.linkDriver(&driver1);
-    // current_sense1.linkDriver(&driver1);
-
-    // motor1.foc_modulation = FOCModulationType::SpaceVectorPWM;
-    // motor1.torque_controller = TorqueControlType::dc_current;
-    // motor1.controller = MotionControlType::torque;
-    // motor1.current_limit = 1;
-    // motor1.voltage_limit = 12;
-    // motor1.velocity_limit = 50;
-    
-    // motor1.linkCurrentSense(&current_sense1);
-    // current_sense1.gain_b *= -1;
-    // current_sense1.init();
-
-    // motor1.PID_current_q.P = 20;
-    // motor1.PID_current_q.I = 100; 
-    // motor1.PID_current_q.D = 0.01;
-    // motor1.LPF_current_q.Tf = 0.01;
-    // motor1.PID_current_q.limit = motor1.voltage_limit;
-    
-    // motor1.init();
-    // motor1.initFOC(); 
+    motor0.init();
+    motor0.initFOC();    
 
     _delay(1000);
 
 }
-unsigned long t0_current = 0;
-unsigned long inter_current = 20; 
-float target = 0;
-unsigned long tempoInicio = 0;
-bool degrau = false;
-unsigned long t0_move = 0;
+
+float input = 0;
+
+unsigned long t0Current = 0;
+unsigned long tsCurrent = 20; 
+
+unsigned long t0StepSignal = 0;
+bool stepSignal = false;
+
+unsigned long t0MoveMotor = 0;
+unsigned long tsMoveMotor = 5;
 
 void loop() {
-    unsigned long tf_current = millis();
-    unsigned long tf_move = millis();
+    unsigned long tfCurrent = millis();
+    unsigned long tfMoveMotor = millis();
 
-    if (!degrau) {
-        degrau = true;
-        tempoInicio = millis();
+    if (!stepSignal) {
+        stepSignal = true;
+        t0StepSignal = millis();
     }
 
-    if (degrau) {
-        if (millis() - tempoInicio >= 3000) {
-            target = -1;
+    if (stepSignal) {
+        if (millis() - t0StepSignal >= 3000) {
+            input = 1;
         }         
         else { 
-            target = 0;
+            input = 0;
         }
     }
 
-    motor.loopFOC();
-    // motor1.loopFOC();
+    motor0.loopFOC();
 
-    if(tf_move - t0_move >= 5){
-        motor.move(target);
-        // motor1.move(target);
-        t0_move = tf_move;
+    if(tfMoveMotor - t0MoveMotor >= tsMoveMotor){
+        motor0.move(input);
+        t0MoveMotor = tfMoveMotor;
     }
 
-    if(tf_current - t0_current >= inter_current){
+    if(tfCurrent - t0Current >= tsCurrent){
 
-        PhaseCurrent_s phase_currents = current_sense.getPhaseCurrents();
-        ABCurrent_s ab_currents = current_sense.getABCurrents(phase_currents);
-        DQCurrent_s dq_currents = current_sense.getDQCurrents(ab_currents, motor.electrical_angle);
-        float current_magnitude = current_sense.getDCCurrent();
+        PhaseCurrent_s phaseCurrents = currentSense0.getPhaseCurrents();
+        ABCurrent_s abCurrents = currentSense0.getABCurrents(phaseCurrents);
+        DQCurrent_s dqCurrents = currentSense0.getDQCurrents(abCurrents, motor0.electrical_angle);
+        float currentMagnitude = currentSense0.getDCCurrent();
 
-        Serial.print(t0_current);
+        Serial.print(t0Current);
         Serial.print("\t");
-        Serial.print(target, 3);
+        Serial.print(input, 3);
         Serial.print("\t");
-        Serial.print(dq_currents.q,5);
+        Serial.print(dqCurrents.q,3);
         Serial.print("\t");
-        Serial.print(dq_currents.d,5);
+        Serial.print(dqCurrents.d,3);
         Serial.print("\t");
-        Serial.print(current_magnitude, 5);
+        Serial.print(currentMagnitude, 3);
         Serial.print("\t");
-        Serial.print(encoder.getSensorAngle(),5);
+        Serial.print(encoder0.getSensorAngle(),3);
         Serial.print("\t");
-        Serial.print(encoder.getVelocity(),5);
-        Serial.println("\t");
-
-        // phase_currents = current_sense1.getPhaseCurrents();
-        // ab_currents = current_sense1.getABCurrents(phase_currents);
-        // dq_currents = current_sense1.getDQCurrents(ab_currents, motor.electrical_angle);
-        // current_magnitude = current_sense1.getDCCurrent();
-
-        // Serial.print(dq_currents.q,5);
-        // Serial.print("\t");
-        // Serial.print(dq_currents.d,5);
-        // Serial.print("\t");
-        // Serial.print(current_magnitude, 5);
-        // Serial.print("\t");
-        // Serial.print(encoder.getSensorAngle(),5);
-        // Serial.print("\t");
-        // Serial.println(encoder1.getVelocity(),5);
+        Serial.println(encoder0.getVelocity(),3);
         
-        
-        t0_current = tf_current;
+        t0Current = tfCurrent;
     }
 }
