@@ -33,7 +33,7 @@ void setup() {
 
     motor0.foc_modulation = FOCModulationType::SpaceVectorPWM;
     motor0.torque_controller = TorqueControlType::dc_current;
-    motor0.controller = MotionControlType::torque;
+    motor0.controller = MotionControlType::velocity;
     motor0.current_limit = 1.1;
     motor0.voltage_limit = 12;
     motor0.velocity_limit = 55;
@@ -48,6 +48,12 @@ void setup() {
     motor0.LPF_current_q.Tf = 0.01;
     motor0.PID_current_q.limit = motor0.voltage_limit;
 
+    motor0.PID_velocity.P = 0.01;
+    motor0.PID_velocity.I = 1;
+    motor0.PID_velocity.D = -0.00001;
+    motor0.LPF_velocity.Tf = 0.001;
+    motor0.PID_velocity.output_ramp = 1000;
+
     motor0.init();
     motor0.initFOC();    
 
@@ -60,7 +66,8 @@ float input = 0;
 unsigned long t0Current = 0;
 unsigned long tsCurrent = 20; 
 
-unsigned long t0RampSignal = 0;
+unsigned long t0StepSignal = 0;
+bool stepSignal = false;
 
 unsigned long t0MoveMotor = 0;
 unsigned long tsMoveMotor = 5;
@@ -71,6 +78,20 @@ void loop() {
     unsigned long tfCurrent = millis();
     unsigned long tfMoveMotor = millis();
     unsigned long tfRampSignal = millis();
+
+    if (!stepSignal) {
+        stepSignal = true;
+        t0StepSignal = millis();
+    }
+
+    if (stepSignal) {
+        if (millis() - t0StepSignal >= 3000) {
+            input = -50;
+        }         
+        else { 
+            input = 0;
+        }
+    }
 
     motor0.loopFOC();
 
