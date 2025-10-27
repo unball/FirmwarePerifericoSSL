@@ -8,6 +8,12 @@ BLDCMotor motor0 = BLDCMotor(11);
 BLDCDriver3PWM driver0 = BLDCDriver3PWM(32, 33, 25, 22);
 InlineCurrentSense currentSense0 = InlineCurrentSense(0.01f, 50.0f, 39, 36);
 
+MagneticSensorI2C encoder1 = MagneticSensorI2C(AS5600_I2C);
+TwoWire I2CEncoder1 = TwoWire(1);
+BLDCMotor motor1 = BLDCMotor(11);
+BLDCDriver3PWM driver1 = BLDCDriver3PWM(26, 27, 14, 12);
+InlineCurrentSense currentSense1 = InlineCurrentSense(0.01f, 50.0f,  35, 34);
+
 void setup() {
 
     Serial.begin(115200);
@@ -54,29 +60,17 @@ float input = 0;
 unsigned long t0Current = 0;
 unsigned long tsCurrent = 20; 
 
-unsigned long t0StepSignal = 0;
-bool stepSignal = false;
+unsigned long t0RampSignal = 0;
 
 unsigned long t0MoveMotor = 0;
 unsigned long tsMoveMotor = 5;
 
+float addInput = 0.001;
+
 void loop() {
     unsigned long tfCurrent = millis();
     unsigned long tfMoveMotor = millis();
-
-    if (!stepSignal) {
-        stepSignal = true;
-        t0StepSignal = millis();
-    }
-
-    if (stepSignal) {
-        if (millis() - t0StepSignal >= 3000) {
-            input = 1;
-        }         
-        else { 
-            input = 0;
-        }
-    }
+    unsigned long tfRampSignal = millis();
 
     motor0.loopFOC();
 
@@ -105,7 +99,7 @@ void loop() {
         Serial.print(encoder0.getSensorAngle(),3);
         Serial.print("\t");
         Serial.println(encoder0.getVelocity(),3);
-        
+
         t0Current = tfCurrent;
     }
 }
