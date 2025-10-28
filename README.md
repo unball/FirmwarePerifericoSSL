@@ -18,7 +18,7 @@ Software:
 
 > :warning: Cuidado!! :warning:
 >
-> Não usar o motor em openloop!! Se precisar, use por menos de 1 minuto
+> - Não usar o motor em openloop!! Se precisar, use por menos de 1 minuto
 
 ## Rotina para usar os motores:
 
@@ -28,27 +28,61 @@ driver + 2 motores + encoder + bateria
 
 ### 2. Testar se motor está funcionando
 
-Branch teste-motor-0
+Acesse o código das respectivas tags do git para testar cada motor:
 
-Branch teste-motor-1
+- teste-motor-0
+- teste-motor-1
 
 ### 3. Testar ou ajustar controle de torque
 
-Branch controle-torque_motor_0
+Acesse o código das respectivas tags do git para testar cada motor:
 
-Branch controle-torque_motor_1
+- controle-torque-motor-0
+- controle-torque-motor-1
 
 ### 4. Testar ou ajustar controle de velocidade
 
-Branch controle-vel_motor_0
+Acesse o código das respectivas tags do git para testar cada motor:
 
-Branch controle-vel_motor_1
+- controle-vel-motor-0
+- controle-vel-motor-1
 
 ### 5. Testar recebimento de dados do Firmware Central
 
-Verificar montagem dos componentes
+[TODO]
 
-Branch recebimento_firm_central
+<!-- Verificar montagem dos componentes
+
+Tag recebimento_firm_central -->
+
+### 6. Anotar parâmetros de alinhamento FOC
+
+Tag alinhamento-FOC-motor-0
+alinhamento-FOC-motor-1
+
+Alterar em `nome arquivo`, as seguintes variaveis:
+
+```
+variaveis alinhamento
+```
+
+### 7. Execute novamente o código sem alinhar o motor
+
+Altere o codigo das tags: 
+
+- controle-vel-motor-0
+- controle-vel-motor-1
+
+adicione em setup():
+
+```
+codigo
+```
+
+Ou passe o código a seguir pra main.cpp e execute o script, passando a velocidade desejada via Serial Monitor:
+
+
+Se estiver tudo OK, só seguir com a preparação do robô.
 
 ## Notas
 
