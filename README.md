@@ -19,6 +19,7 @@ Software:
 > :warning: Cuidado!! :warning:
 >
 > - Não usar o motor em openloop!! Se precisar, use por menos de 1 minuto
+> - É importante seguir a ordem da rotina para garantir que tudo vá funcionar corretamente. Se os parametros de alinhamento de FOC forem incluídos antes de realizar algum alinhamento do motor, não vai funcionar bem.
 
 ## Rotina para usar os motores:
 
@@ -33,6 +34,27 @@ Acesse o código das respectivas tags do git para testar cada motor:
 - teste-motor-0
 - teste-motor-1
 
+Ao abrir o Serial Monitor, as primeiras informações devem ser algo parecido com:
+
+```txt
+MOT: Enable driver.
+MOT: Align sensor.
+MOT: sensor_direction==CW
+MOT: PP check: OK!
+MOT: Zero elec. angle: 4.08
+MOT: Align current sense.
+CS: Inv B
+MOT: Success: 3
+MOT: Ready.
+```
+
+Importante:
+- `sensor_direction` sempre deve ser `CW`, pois o pino `DIR` do encoder AS5600 está conectado no 3.3V
+- Depois de `Align current sense.`, deve aparecer somente `CS: Inv B`. Se estiver diferente, conferir se há algum mal contato dos fios do motor no driver ou se o driver não está danificado
+- As informações depois do alinhamento do motor são mostradas como:
+```<instante (segundos)> <entrada (A)> <iq (A)> <id (A)> <magnitude da corrente  no motor (|A|)> <angulo do motor (rad)> <velocidade do motor (rad/s)>```
+- A entrada é corrente (A). Se for diferente de zero, o motor deve se mover. Se for igual a 0, o motor fica parado e se você mexer com a mão, ele não oferece força contrária
+
 ### 3. Testar ou ajustar controle de torque
 
 Acesse o código das respectivas tags do git para testar cada motor:
@@ -40,12 +62,55 @@ Acesse o código das respectivas tags do git para testar cada motor:
 - controle-torque-motor-0
 - controle-torque-motor-1
 
+Ao abrir o Serial Monitor, as primeiras informações devem ser algo parecido com:
+
+```txt
+MOT: Enable driver.
+MOT: Align sensor.
+MOT: sensor_direction==CW
+MOT: PP check: OK!
+MOT: Zero elec. angle: 4.08
+MOT: Align current sense.
+CS: Inv B
+MOT: Success: 3
+MOT: Ready.
+```
+
+Importante:
+- `sensor_direction` sempre deve ser `CW`, pois o pino `DIR` do encoder AS5600 está conectado no 3.3V
+- Depois de `Align current sense.`, deve aparecer somente `CS: Inv B`. Se estiver diferente, conferir se há algum mal contato dos fios do motor no driver ou se o driver não está danificado
+- As informações depois do alinhamento do motor são mostradas como:
+```<instante (segundos)> <entrada (A)> <iq (A)> <id (A)> <magnitude da corrente  no motor (|A|)> <angulo do motor (rad)> <velocidade do motor (rad/s)>```
+- A entrada é corrente (A). Se for diferente de zero, o motor deve se mover. Se for igual a 0, o motor fica parado e se você mexer com a mão, ele não oferece força contrária
+
+
 ### 4. Testar ou ajustar controle de velocidade
 
 Acesse o código das respectivas tags do git para testar cada motor:
 
 - controle-vel-motor-0
 - controle-vel-motor-1
+
+Ao abrir o Serial Monitor, as primeiras informações devem ser algo parecido com:
+
+```txt
+MOT: Enable driver.
+MOT: Align sensor.
+MOT: sensor_direction==CW
+MOT: PP check: OK!
+MOT: Zero elec. angle: 4.08
+MOT: Align current sense.
+CS: Inv B
+MOT: Success: 3
+MOT: Ready.
+```
+
+Importante:
+- `sensor_direction` sempre deve ser `CW`, pois o pino `DIR` do encoder AS5600 está conectado no 3.3V
+- Depois de `Align current sense.`, deve aparecer somente `CS: Inv B`. Se estiver diferente, conferir se há algum mal contato dos fios do motor no driver ou se o driver não está danificado
+- As informações depois do alinhamento do motor são mostradas como:
+```<instante (segundos)> <entrada (A)> <iq (A)> <id (A)> <magnitude da corrente  no motor (|A|)> <angulo do motor (rad)> <velocidade do motor (rad/s)>```
+- A entrada é velocidade (rad/s). Se for diferente de zero, o motor deve se mover. Se for igual a 0, o motor fica parado e se você mexer com a mão, ele deve fornecer alguma força contrária para manter o motor parado
 
 ### 5. Testar recebimento de dados do Firmware Central
 
@@ -57,30 +122,64 @@ Tag recebimento_firm_central -->
 
 ### 6. Anotar parâmetros de alinhamento FOC
 
-Tag alinhamento-FOC-motor-0
-alinhamento-FOC-motor-1
+Acesse o código das respectivas tags do git para testar cada motor: 
 
-Alterar em `nome arquivo`, as seguintes variaveis:
+- alinhamento-FOC-motor-0
+- alinhamento-FOC-motor-1
 
-```
-variaveis alinhamento
+Ao abrir o Serial Monitor, as primeiras informações devem ser algo parecido com:
+
+```txt
+MOT: Enable driver.
+MOT: Align sensor.
+MOT: sensor_direction==CW
+MOT: PP check: OK!
+MOT: Zero elec. angle: 4.08
+MOT: Align current sense.
+CS: Inv B
+MOT: Success: 3
+MOT: Ready.
 ```
 
 ### 7. Execute novamente o código sem alinhar o motor
 
-Altere o codigo das tags: 
+Acesse, por exemplo, o código das tags: 
 
 - controle-vel-motor-0
 - controle-vel-motor-1
 
-adicione em setup():
+Incluir em `main.cpp` dentro do método `void setup()`, antes de `motor.initFOC()`, as seguintes variaveis:
 
+```cpp
+motor.zero_electric_angle = <valor que você achou para Zero elec. angle>;
+motor.sensor_direction = <valor que você achou para sensor_direction. Se estiver certo: Direction::CW>;
+currentSense.skip_align = true;
 ```
-codigo
+
+Ou passe o código a seguir pra `main.cpp` e abra o Serial Monitor, passando a velocidade desejada usando o teclado, digitando `T<valor que você deseja para velocidade>` + clica em Enter:
+
+- Antes de `void setup()`:
+
+```cpp
+//Command Settings
+float input = 0;                                //Enter "T+speed" in the serial monitor to make the two motors rotate in closed loop
+Commander command = Commander(Serial);                    //For example, to make both motors rotate at a speed of 10rad/s, input "T10"
+void doTarget(char* cmd) { command.scalar(&input, cmd); }
 ```
 
-Ou passe o código a seguir pra main.cpp e execute o script, passando a velocidade desejada via Serial Monitor:
+- Ao final de `void setup()`:
 
+```cpp
+command.add('T', doTarget, "target velocity");
+```
+
+- Dentro de `void loop()`:
+
+```cpp
+command.run();
+```
+
+> Se testar usando o teclado + Serial Monitor, é importante que não esteja imprimindo nenhuma informação no Serial Monitor. Caso contrário, você não vai conseguir enviar o valor desejado para o motor.
 
 Se estiver tudo OK, só seguir com a preparação do robô.
 
