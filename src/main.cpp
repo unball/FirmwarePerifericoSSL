@@ -32,7 +32,7 @@ void setup() {
 
     motor.foc_modulation = FOCModulationType::SpaceVectorPWM;
     motor.torque_controller = TorqueControlType::dc_current;
-    motor.controller = MotionControlType::velocity;
+    motor.controller = MotionControlType::torque;
     motor.current_limit = gm4108h120T::MOTOR_CURRENT_LIMIT;
     motor.voltage_limit = gm4108h120T::MOTOR_VOLTAGE_LIMIT;
     motor.velocity_limit = gm4108h120T::MOTOR_VELOCITY_LIMIT;
@@ -47,12 +47,6 @@ void setup() {
     motor.LPF_current_q.Tf = torquePID::Tf_iq;
     motor.PID_current_q.limit = motor.voltage_limit;
 
-    motor.PID_velocity.P = velocityPID::P_vel;
-    motor.PID_velocity.I = velocityPID::I_vel;
-    motor.PID_velocity.D = velocityPID::D_vel;
-    motor.LPF_velocity.Tf = velocityPID::Tf_vel;
-    motor.PID_velocity.output_ramp = velocityPID::output_ramp_vel;
-
     motor.init();
     motor.initFOC();    
 
@@ -60,7 +54,7 @@ void setup() {
 
 }
 
-float input = 30;
+float input = 0.5;
 
 unsigned long t0Current = 0;
 unsigned long tsCurrent = 20; 
