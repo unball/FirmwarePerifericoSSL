@@ -8,10 +8,10 @@
 #include "constants/constants_GM4108H120T.h"
 
 MagneticSensorI2C encoder = MagneticSensorI2C(AS5600_I2C);
-TwoWire I2CEncoder = TwoWire(motor0::I2C_BUS_NUMBER);
+TwoWire I2CEncoder = TwoWire(motor1::I2C_BUS_NUMBER);
 BLDCMotor motor = BLDCMotor(gm4108h120T::NUMBER_POLES, gm4108h120T::PHASE_RESISTANCE);
-BLDCDriver3PWM driver = BLDCDriver3PWM(motor0::DRIVER_PINOUT_PHASE_A, motor0::DRIVER_PINOUT_PHASE_B, motor0::DRIVER_PINOUT_PHASE_C, motor0::DRIVER_PINOUT_ENABLE);
-InlineCurrentSense currentSense = InlineCurrentSense(motor0::CURRENT_SENSE_RESISTOR, motor0::CURRENT_SENSE_GAIN, motor0::CURRENT_SENSE_PINOUT_PHASE_A, motor0::CURRENT_SENSE_PINOUT_PHASE_B);
+BLDCDriver3PWM driver = BLDCDriver3PWM(motor1::DRIVER_PINOUT_PHASE_A, motor1::DRIVER_PINOUT_PHASE_B, motor1::DRIVER_PINOUT_PHASE_C, motor1::DRIVER_PINOUT_ENABLE);
+InlineCurrentSense currentSense = InlineCurrentSense(motor1::CURRENT_SENSE_RESISTOR, motor1::CURRENT_SENSE_GAIN, motor1::CURRENT_SENSE_PINOUT_PHASE_A, motor1::CURRENT_SENSE_PINOUT_PHASE_B);
 
 void setup() {
 
@@ -20,12 +20,12 @@ void setup() {
 
     motor.useMonitoring(Serial);    
     
-    I2CEncoder.begin(motor0::I2C_PINOUT_SDA,motor0::I2C_PINOUT_SCL, motor0::I2C_PINOUT_FREQUENCY);
+    I2CEncoder.begin(motor1::I2C_PINOUT_SDA,motor1::I2C_PINOUT_SCL, motor1::I2C_PINOUT_FREQUENCY);
     encoder.init(&I2CEncoder);
     motor.linkSensor(&encoder);
 
-    driver.voltage_power_supply = motor0::DRIVER_VOLTAGE_POWER_SUPPLY;
-    driver.voltage_limit = motor0::DRIVER_VOLTAGE_LIMIT;
+    driver.voltage_power_supply = motor1::DRIVER_VOLTAGE_POWER_SUPPLY;
+    driver.voltage_limit = motor1::DRIVER_VOLTAGE_LIMIT;
     driver.init();
     motor.linkDriver(&driver);
     currentSense.linkDriver(&driver);
@@ -38,7 +38,7 @@ void setup() {
     motor.velocity_limit = gm4108h120T::MOTOR_VELOCITY_LIMIT;
     
     motor.linkCurrentSense(&currentSense);
-    currentSense.gain_b *= motor0::CURRENT_SENSE_GAIN_B;
+    currentSense.gain_b *= motor1::CURRENT_SENSE_GAIN_B;
     currentSense.init();
 
     motor.PID_current_q.P = torquePID::P_iq;
