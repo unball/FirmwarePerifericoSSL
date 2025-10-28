@@ -15,8 +15,8 @@ namespace motor1 {
     // Params for current sensor INA1818A
     constexpr float CURRENT_SENSE_RESISTOR = 0.01f;
     constexpr float CURRENT_SENSE_GAIN = 50.0f;
-    constexpr float CURRENT_SENSE__PINOUT_PHASE_A = 35;
-    constexpr float CURRENT_SENSE__PINOUT_PHASE_B = 34;
+    constexpr float CURRENT_SENSE_PINOUT_PHASE_A = 35;
+    constexpr float CURRENT_SENSE_PINOUT_PHASE_B = 34;
     constexpr int CURRENT_SENSE_GAIN_B = -1;
 
     // Limits for GM4108H120T
