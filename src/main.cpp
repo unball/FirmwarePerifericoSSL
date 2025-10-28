@@ -30,7 +30,7 @@ void setup() {
     currentSense.linkDriver(&driver);
 
     motor.foc_modulation = FOCModulationType::SpaceVectorPWM;
-    motor.torque_controller = TorqueControlType::voltage;
+    motor.torque_controller = TorqueControlType::dc_current;
     motor.controller = MotionControlType::torque;
     motor.current_limit = gm4108h120T::MOTOR_CURRENT_LIMIT;
     motor.voltage_limit = gm4108h120T::MOTOR_VOLTAGE_LIMIT;
@@ -39,6 +39,12 @@ void setup() {
     motor.linkCurrentSense(&currentSense);
     currentSense.gain_b *= motor1::CURRENT_SENSE_GAIN_B;
     currentSense.init();
+
+    motor.PID_current_q.P = torquePID::P_iq;
+    motor.PID_current_q.I = torquePID::I_iq; 
+    motor.PID_current_q.D = torquePID::D_iq;
+    motor.LPF_current_q.Tf = torquePID::Tf_iq;
+    motor.PID_current_q.limit = motor.voltage_limit;
 
     motor.init();
     motor.initFOC();    
