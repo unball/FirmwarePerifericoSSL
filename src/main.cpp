@@ -31,7 +31,7 @@ void setup() {
     currentSense.linkDriver(&driver);
 
     motor.foc_modulation = FOCModulationType::SpaceVectorPWM;
-    motor.torque_controller = TorqueControlType::dc_current;
+    motor.torque_controller = TorqueControlType::voltage;
     motor.controller = MotionControlType::torque;
     motor.current_limit = gm4108h120T::MOTOR_CURRENT_LIMIT;
     motor.voltage_limit = gm4108h120T::MOTOR_VOLTAGE_LIMIT;
@@ -41,12 +41,6 @@ void setup() {
     currentSense.gain_b *= motor0::CURRENT_SENSE_GAIN_B;
     currentSense.init();
 
-    motor.PID_current_q.P = torquePID::P_iq;
-    motor.PID_current_q.I = torquePID::I_iq; 
-    motor.PID_current_q.D = torquePID::D_iq;
-    motor.LPF_current_q.Tf = torquePID::Tf_iq;
-    motor.PID_current_q.limit = motor.voltage_limit;
-
     motor.init();
     motor.initFOC();    
 
@@ -54,7 +48,7 @@ void setup() {
 
 }
 
-float input = 0.5;
+float input = 0;
 
 unsigned long t0Current = 0;
 unsigned long tsCurrent = 20; 
@@ -74,29 +68,5 @@ void loop() {
     if(tfMoveMotor - t0MoveMotor >= tsMoveMotor){
         motor.move(input);
         t0MoveMotor = tfMoveMotor;
-    }
-
-    if(tfCurrent - t0Current >= tsCurrent){
-
-        PhaseCurrent_s phaseCurrents = currentSense.getPhaseCurrents();
-        ABCurrent_s abCurrents = currentSense.getABCurrents(phaseCurrents);
-        DQCurrent_s dqCurrents = currentSense.getDQCurrents(abCurrents, motor.electrical_angle);
-        float currentMagnitude = currentSense.getDCCurrent();
-
-        Serial.print(t0Current);
-        Serial.print("\t");
-        Serial.print(input, 3);
-        Serial.print("\t");
-        Serial.print(dqCurrents.q,3);
-        Serial.print("\t");
-        Serial.print(dqCurrents.d,3);
-        Serial.print("\t");
-        Serial.print(currentMagnitude, 3);
-        Serial.print("\t");
-        Serial.print(encoder.getSensorAngle(),3);
-        Serial.print("\t");
-        Serial.println(encoder.getVelocity(),3);
-
-        t0Current = tfCurrent;
     }
 }
