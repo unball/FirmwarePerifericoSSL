@@ -20,6 +20,7 @@ Software:
 >
 > - Não usar o motor em openloop!! Se precisar, use por menos de 1 minuto
 > - É importante seguir a ordem da rotina para garantir que tudo vá funcionar corretamente. Se os parametros de alinhamento de FOC forem incluídos antes de realizar algum alinhamento do motor, não vai funcionar bem.
+> - Para listar as tags, basta digitar `git tag` no terminal
 
 ## Rotina para usar os motores:
 
