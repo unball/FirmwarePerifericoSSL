@@ -14,7 +14,11 @@ Hardware:
 Software: 
 
 - SimpleFOC + Arduino (link para documentação: https://docs.simplefoc.com/)
+- PlatformIO + VSCode
 
+> :warning: Cuidado!! :warning:
+>
+> Não usar o motor em openloop!! Se precisar, use por menos de 1 minuto
 
 ## Rotina para usar os motores:
 
@@ -45,3 +49,24 @@ Branch controle-vel_motor_1
 Verificar montagem dos componentes
 
 Branch recebimento_firm_central
+
+## Notas
+
+### [outubro/2025]
+
+Espressif não está oferecendo suporte para PlatformIO. Se o driver for MKS ESP32 DUAL FOC, para conseguir usar a versão  mais atual da biblioteca SimpleFOC, a configuração do firmware da ESP32 deve ser buscada por versões mantidas pelos usuários.
+
+Portanto, ao abrir o projeto no VSCode, verificar se as configurações em `platformio.ini` estão parecidas com o código a seguir:
+
+```
+[env:esp32dev]
+
+platform = https://github.com/pioarduino/platform-espressif32/releases/download/55.03.30/platform-espressif32.zip
+platform_packages=
+  framework-arduinoespressif32 @ https://github.com/espressif/arduino-esp32/releases/download/3.3.0/esp32-3.3.0.zip
+board = esp32dev
+framework = arduino
+monitor_speed = 115200
+lib_deps = askuric/Simple FOC @ 2.3.5
+
+```
