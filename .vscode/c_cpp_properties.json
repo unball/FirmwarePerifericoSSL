@@ -8,9 +8,9 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "/home/nana/Downloads/dev/unball/FirmwarePerifericoSSL/include",
-                "/home/nana/Downloads/dev/unball/FirmwarePerifericoSSL/src",
-                "/home/nana/Downloads/dev/unball/FirmwarePerifericoSSL/.pio/libdeps/esp32dev/Simple FOC/src",
+                "/home/nana/Desktop/unball/FirmwarePerifericoSSL/include",
+                "/home/nana/Desktop/unball/FirmwarePerifericoSSL/src",
+                "/home/nana/Desktop/unball/FirmwarePerifericoSSL/.pio/libdeps/esp32dev/Simple FOC/src",
                 "/home/nana/.platformio/packages/framework-arduinoespressif32/libraries/SPI/src",
                 "/home/nana/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                 "/home/nana/.platformio/packages/framework-arduinoespressif32-libs/esp32/include/newlib/platform_include",
@@ -350,9 +350,9 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "/home/nana/Downloads/dev/unball/FirmwarePerifericoSSL/include",
-                    "/home/nana/Downloads/dev/unball/FirmwarePerifericoSSL/src",
-                    "/home/nana/Downloads/dev/unball/FirmwarePerifericoSSL/.pio/libdeps/esp32dev/Simple FOC/src",
+                    "/home/nana/Desktop/unball/FirmwarePerifericoSSL/include",
+                    "/home/nana/Desktop/unball/FirmwarePerifericoSSL/src",
+                    "/home/nana/Desktop/unball/FirmwarePerifericoSSL/.pio/libdeps/esp32dev/Simple FOC/src",
                     "/home/nana/.platformio/packages/framework-arduinoespressif32/libraries/SPI/src",
                     "/home/nana/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                     "/home/nana/.platformio/packages/framework-arduinoespressif32-libs/esp32/include/newlib/platform_include",
