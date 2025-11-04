@@ -10,9 +10,6 @@
 #define UART_TX 13
 #define UART_RX 15
 
-float v1 = 0;
-float v2 = 0;
-
 MagneticSensorI2C encoder = MagneticSensorI2C(AS5600_I2C);
 TwoWire I2CEncoder = TwoWire(motor0::I2C_BUS_NUMBER);
 BLDCMotor motor = BLDCMotor(gm4108h120T::NUMBER_POLES, gm4108h120T::PHASE_RESISTANCE);
@@ -45,24 +42,24 @@ void setup() {
     motor.voltage_limit = gm4108h120T::MOTOR_VOLTAGE_LIMIT;
     motor.velocity_limit = gm4108h120T::MOTOR_VELOCITY_LIMIT;
     
-    motor.PID_current_q.P = 25;
-    motor.PID_current_q.I = 10000; 
-    motor.PID_current_q.D = -0.001;
-    motor.LPF_current_q.Tf = 0.01;
-    motor.PID_current_q.limit = motor.voltage_limit;
-
-    motor.PID_velocity.P = 0.01;
-    motor.PID_velocity.I = 1;
-    motor.PID_velocity.D = -0.00001;
-    motor.LPF_velocity.Tf = 0.001;
-    motor.PID_velocity.output_ramp = 1000;
-    
     motor.linkCurrentSense(&currentSense);
     currentSense.gain_b *= motor0::CURRENT_SENSE_GAIN_B;
     currentSense.init();
 
+    motor.PID_current_q.P = torquePID::P_iq;
+    motor.PID_current_q.I = torquePID::I_iq; 
+    motor.PID_current_q.D = torquePID::D_iq;
+    motor.LPF_current_q.Tf = torquePID::Tf_iq;
+    motor.PID_current_q.limit = motor.voltage_limit;
+
+    motor.PID_velocity.P = velocityPID::P_vel;
+    motor.PID_velocity.I = velocityPID::I_vel;
+    motor.PID_velocity.D = velocityPID::D_vel;
+    motor.LPF_velocity.Tf = velocityPID::Tf_vel;
+    motor.PID_velocity.output_ramp = velocityPID::output_ramp_vel;
+
     motor.init();
-    motor.initFOC();  
+    motor.initFOC(); 
 
     mySerial.begin(9600,SERIAL_8N1,UART_RX,UART_TX);
     while(!mySerial);
@@ -116,7 +113,7 @@ void loop() {
   
       }
 
-      // input = x;
+      input = x;
 
       Serial.print(x);
       Serial.print(" ");
