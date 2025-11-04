@@ -11,7 +11,7 @@ float wheelTarget1 = 0;
 
 void setup(){
 
-  Driver::setup(parameters::velocityMode, true, false);
+  Driver::setup(parameters::velocityMode, true, true);
  
   #if CENTRAL_BOARD_ON
     UART::setup();
