@@ -9,7 +9,7 @@ namespace parameters {
     constexpr uint8_t velocityMode = 2;
 
     // Sample time for control
-    constexpr int sampletimeControl = 5; // ms
+    constexpr int sampletimeControl = 7; // ms
 
     // I2C frequency
     constexpr uint32_t I2C_PINOUT_FREQUENCY = 400000UL;
