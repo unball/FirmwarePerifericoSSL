@@ -79,6 +79,14 @@ void loop(){
 
   #if RAMPA
     if(actualTimestamp - t0_rampa >= 50){
+
+      // SE QUISER RAMPA POSITIVA, USAR O SEGUINTE CODIGO:
+      // wheelTarget1 += 0.001;
+      // if(wheelTarget1 >= 1.1){
+      //   wheelTarget1 = 1.1;
+      // }
+
+
       wheelTarget1 -= 0.001;
       if(wheelTarget1 <= -1.1){
         wheelTarget1 = -1.1;
@@ -98,9 +106,12 @@ void loop(){
         t0_liga_desliga = millis();
         
         if(wheelTarget1 != 0){
-            wheelTarget1 = 0;
+          wheelTarget1 = 0;
         }else{
-            wheelTarget1 = -1.1;
+          // SE QUISER POSITIVA, USAR O SEGUINTE CODIGO:
+          // wheelTarget1 = 1.1;
+      
+          wheelTarget1 = -1.1;
         }
       }
     }   
@@ -114,6 +125,9 @@ void loop(){
 
     if(degrau){
       if(millis() - t0_degrau >= 3000){
+        // SE QUISER POSITIVA, USAR O SEGUINTE CODIGO:
+        // wheelTarget1 = 1.1;
+
         wheelTarget1 = -1.1;
       }else {
         wheelTarget1 = 0;
